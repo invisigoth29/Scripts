@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+#web-client2.py
+
+import requests
+
+url = 'http://www.offensive-security.com'
+
+info = {'check-key': 'check-value'}
+post = requests.post(url, data = info)
+print(post.text)
