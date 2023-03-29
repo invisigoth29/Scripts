@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import requests
 
-URL = "http://192.168.50.101/"
+URL = "https://35.83.123.142/"
 urlList = []
 isFollowed = {}
 
