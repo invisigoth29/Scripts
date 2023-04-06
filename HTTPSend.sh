@@ -2,7 +2,7 @@
 
 #!/bin/bash
 
-websites=("https://www.site.com” "https://www.testsite.com "https://www.test.com”)
+websites=("https://www.dovahsec.com” "https://www.google.com”)
 
 while true; do
     for website in "${websites[@]}"; do
