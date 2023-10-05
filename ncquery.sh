@@ -1,21 +1,34 @@
 #!/bin/bash
 
-# Get the filename of the input file from the command line argument
-input_file=$1
-
-# Check if the input file exists
-if [ ! -f "$input_file" ]; then
-    echo "Input file '$input_file' not found"
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 input_file"
     exit 1
 fi
 
-# Read the contents of the input file
-while read line; do
-    # Split the line into IP address and port number
-    ip=$(echo $line | cut -d " " -f 1)
-    port=$(echo $line | cut -d " " -f 2)
+input_file="$1"
 
-    # Use netcat to query the service version on the given port
-    echo "Querying $ip:$port ..."
-    (echo ""; echo) | nc $ip $port | head -n 1
-done < $input_file
+# Check if input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Input file not found: $input_file"
+    exit 1
+fi
+
+# Loop through each line (each line should contain a hostname and a port)
+while read -r line; do
+    # Split the line into hostname and port
+    hostname=$(echo "$line" | cut -d' ' -f1)
+    port=$(echo "$line" | cut -d' ' -f2)
+
+    # Use netcat to query the banner on the specified port
+    echo "Checking $hostname:$port..."
+    result=$(nc -v -n -w 1 -z "$hostname" "$port" 2>&1)
+
+    if [[ $result == *succeeded* ]]; then
+        echo "Banner for $hostname:$port:"
+        echo "$result"
+    else
+        echo "Unable to connect to $hostname:$port"
+    fi
+
+    echo
+done < "$input_file"
