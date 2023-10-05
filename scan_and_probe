@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Define green color escape code
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# Display the ASCII banner with Matrix-like code
+echo -e "${GREEN}"
+echo " 01001001 01101110 01101011 01101111 01110111 01101110 00101100 00100000 01110111 01100101 00100000 01110010 01100101 01100011 01101111 01100101 01110011 01110011 01101100 01111001 00101100 00100000 01100010 01110010 01101111 01110101 01100111 01101000 01110100 00100000 01111001 01101111 01110101 00101100 00100000 01001110 01100101 01101111."
+echo -e "${NC}"
+echo "We've been watching you Neo."
+
+# Check if nmap, httpx, and nuclei are installed
+if ! command -v nmap &>/dev/null || ! command -v httpx &>/dev/null || ! command -v nuclei &>/dev/null; then
+    echo "Please install nmap, httpx, and nuclei before running this script."
+    exit 1
+fi
+
+# Get IP range from user input
+read -p "Enter IP range (e.g., 192.168.1.1-254): " ip_range
+
+# Run nmap to discover live hosts
+echo "Running nmap to discover live hosts..."
+nmap -Pn -F -oN nmap.txt $ip_range
+
+# Extract IP addresses from nmap results
+grep "Nmap scan report for" nmap.txt | awk '{print $5}' > ip.txt
+
+# Run httpx to scan for HTTP services
+echo "Running httpx to scan for HTTP services..."
+httpx -l ip.txt -o final.txt
+
+# Run nuclei for vulnerability scanning
+echo "Running nuclei for vulnerability scanning..."
+nuclei -l ip.txt -o final.txt
+
+echo "Scan completed. Results are saved in final.txt."
