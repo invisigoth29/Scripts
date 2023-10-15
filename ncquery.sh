@@ -1,37 +1,37 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 input_file ports_file"
-    exit 1
+# Check if the input file is provided as an argument
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 input_file"
+  exit 1
 fi
 
 input_file="$1"
-ports_file="$2"
 
-# Check if input and ports files exist
+# Check if the input file exists
 if [ ! -f "$input_file" ]; then
-    echo "Input file not found: $input_file"
-    exit 1
+  echo "Input file does not exist."
+  exit 1
 fi
 
-if [ ! -f "$ports_file" ]; then
-    echo "Ports file not found: $ports_file"
-    exit 1
-fi
+# Define the list of ports to scan
+ports=("80" "443" "22" "8080")
 
-# Loop through each line (each line should contain a hostname)
-while read -r hostname; do
-    # Loop through the specified ports in the ports file and attempt to query banners
-    while read -r port; do
-        # Use netcat to query the banner on the current port
-        echo "Checking $hostname:$port..."
-        result=$(nc -v -n -w 1 -z "$hostname" "$port" 2>&1)
-
-        if [[ $result == *succeeded* ]]; then
-            echo "Banner for $hostname:$port:"
-            echo "$result"
-        fi
-    done < "$ports_file"
-
-    echo
+# Loop through the list of IP addresses from the input file
+while IFS= read -r ip; do
+  echo "Scanning IP: $ip"
+  
+  # Loop through the list of ports
+  for port in "${ports[@]}"; do
+    # Use netcat to attempt a connection to the IP and port
+    if nc -z -w1 $ip $port; then
+      echo "Port $port is open on $ip"
+      
+      # If the port is open, attempt to get the service banner
+      banner=$(nc -v -n -w1 -z $ip $port 2>&1)
+      echo "Service banner for port $port on $ip:"
+      echo "$banner"
+      echo "------------------------"
+    fi
+  done
 done < "$input_file"
